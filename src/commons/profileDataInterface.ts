@@ -1,23 +1,23 @@
 export interface ProfileDataI {
     nombre: string;
-    nombreDeFantasía: string;
+    nombredefantasia: string;
     pais: string;
     tipoDePerfil: string;
-    CUIT: string;
-    actividadISICPrincipal: string | undefined;
-    actividadPrincipalAFIP: string | undefined;
-    perfildeComercialización: string | undefined;
-    fechadeContratoSocial: string | undefined;
-    facturaciónEstimada: string | undefined;
-    cantidaddeEmpleados: string | undefined;
-    usuarioResponsable: string | undefined;
+    cuit: string;
+    actividadisicprincipal: string | undefined;
+    actividadprincipalafip: string | undefined;
+    perfildecomercializacion: string | undefined;
+    fechadecontratosocial: string | undefined;
+    facturacionestimada: string | undefined;
+    cantidaddeempleados: string | undefined;
+    usuarioresponsable: string | undefined;
     domicilio: string | undefined;
-    teléfonos: string | undefined;
+    telefonos: string | undefined;
     sitios: string | undefined;
-    redesSociales: string | undefined;
+    redessociales: string | undefined;
 }
 
 export interface ProfileDataExtendI extends ProfileDataI {
-    perfilComprador?: Array<string>;
-    perfilVendedor?: Array<string>;
+    perfilcomprador?: Array<string>;
+    perfilvendedor?: Array<string>;
 }
