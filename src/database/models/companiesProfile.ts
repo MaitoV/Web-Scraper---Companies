@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
-import { ProfileDataExtendI } from '../../commons/profileDataInterface';
 
-const companiesProfileCollection = 'companiesProfile';
+const companiesProfileCollection = 'NosiscompaniesProfile';
 
 const companiesProfileSchema = new mongoose.Schema({
     nombre: {type: String, required: true},
@@ -20,8 +19,9 @@ const companiesProfileSchema = new mongoose.Schema({
     telefonos: {type: String, required: false},
     sitios: {type: String, required: false},
     redessociales: {type: String, required: false},
-    perfilcomprador: [{type: String}],
-    perfilcendedor: [{type: String}],
+    perfilcomprador: [{type: String, required: false}],
+    perfilvendedor: [{type: String, required: false}],
+    exportador: {type: Boolean, required: false}
 })
 
 export default mongoose.model(companiesProfileCollection, companiesProfileSchema);

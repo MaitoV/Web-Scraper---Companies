@@ -20,4 +20,5 @@ export interface ProfileDataI {
 export interface ProfileDataExtendI extends ProfileDataI {
     perfilcomprador?: Array<string>;
     perfilvendedor?: Array<string>;
+    exportador?: boolean;
 }

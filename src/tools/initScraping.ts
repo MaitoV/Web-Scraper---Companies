@@ -1,17 +1,33 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import stealthPlugin from 'puppeteer-extra-plugin-stealth';
+import randomUserAgent from 'random-useragent';
 import { ProfileDataI, ProfileDataExtendI } from '../commons/profileDataInterface';
 import companiesProfileModel from '../database/models/companiesProfile';
+import pagesScrapedModel from '../database/models/pagesScraped';
 
 
 const initScraping = async (homeUrl: string, paginationTotal:number) => {
     try {
-        let pagesScraped: number = 1;
-
+        let pagesScraped: number = 105;
+        //Crear un user agent random para evitar recaptcha
+        const userAgent = randomUserAgent.getRandom();
+        puppeteer.use(stealthPlugin())
         // Abrir un browser de chronium
-        const browser: puppeteer.Browser = await puppeteer.launch({ headless: false });
+        const browser = await puppeteer.launch({ headless: false });
         // Abrirmos una nueva tab dentro de nuestro browser
-        const tab: puppeteer.Page = await browser.newPage();
-    
+        const tab = await browser.newPage();
+        //Randomize viewport size
+        await tab.setViewport({
+            width: 1920 + Math.floor(Math.random() * 100),
+            height: 3000 + Math.floor(Math.random() * 100),
+            deviceScaleFactor: 1,
+            hasTouch: false,
+            isLandscape: false,
+            isMobile: false,
+        });
+        await tab.setUserAgent(userAgent);
+        await tab.setDefaultNavigationTimeout(0); 
+        
         // En la nueva tab ingresamos al home de la pagina a scrapear en su numero de paginacion
         while(pagesScraped < paginationTotal) {
             //Url de la home con paginacion
@@ -30,9 +46,11 @@ const initScraping = async (homeUrl: string, paginationTotal:number) => {
                 }
                 return linksFromThisPage;
             })
-    
-            const scraped = await scrapePageByPage(getLinks, tab);
-        
+            
+            await scrapePageByPage(getLinks, tab);
+            
+            await pagesScrapedModel.create({page: pagesScraped});
+
             pagesScraped += 1;
         }
         
@@ -42,7 +60,7 @@ const initScraping = async (homeUrl: string, paginationTotal:number) => {
     }
 }
 
-async function scrapePageByPage (urls: Array<string>, tab: puppeteer.Page) {
+async function scrapePageByPage (urls: Array<string>, tab: any) {
     try {
         const companiesData = [];
 
@@ -58,6 +76,7 @@ async function scrapePageByPage (urls: Array<string>, tab: puppeteer.Page) {
                     const fieldsValues: NodeListOf<HTMLElement> = document.querySelectorAll('.profile-info-value');
                     const buyerTab = document.querySelector('#tab_id_Compra');
                     const sellerTab = document.querySelector('#tab_id_Venta');
+                    const comexTab = document.querySelector('#tab_id_Comex');
 
                     profileData['nombre'] = document.querySelector('h1')?.innerText;
                     for(let i = 0; i < fieldsNames.length; i++) {
@@ -66,11 +85,12 @@ async function scrapePageByPage (urls: Array<string>, tab: puppeteer.Page) {
 
                         profileData[propertyName as keyof ProfileDataI] = value;
                     }
+                    profileData['exportador'] = comexTab? true : false;
                     return  {companyProfile: profileData, buyerTabExists: buyerTab? true: false, sellerTabExists: sellerTab? true: false};
             })
 
             const {companyProfile, buyerTabExists, sellerTabExists} = companyData;
-            console.log(companyProfile);
+
             if(buyerTabExists) {
                 await tab.click('#tab_id_Compra');
                 await tab.waitForSelector('.footer-content');
@@ -97,6 +117,7 @@ async function scrapePageByPage (urls: Array<string>, tab: puppeteer.Page) {
                 })
                 companyProfile['perfilvendedor'] = profileSeller;
             }
+            
             companiesData.push(companyProfile);
         }
 
@@ -106,6 +127,5 @@ async function scrapePageByPage (urls: Array<string>, tab: puppeteer.Page) {
         throw error;
     }
 } 
-
 
 export default initScraping;
